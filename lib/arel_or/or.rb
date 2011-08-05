@@ -14,16 +14,18 @@ module Or
             w << where_clause
           end
           where << w.join(" AND ")
-          
+
           joins << s.joins_values if s.joins_values.any?
           includes << s.includes_values if s.includes_values.any?
         end
         scoped = self
-        scoped = scoped.includes(includes.uniq.flatten) unless includes.blank?
-        scoped = scoped.joins(joins.uniq.flatten) unless joins.blank?
+        # p self
+        scoped = scoped.includes(includes.uniq.flatten) if includes.any?
+        scoped = scoped.joins(joins.uniq.flatten) if joins.any?
+        # p where.join(" OR ")
         scoped.where(where.join(" OR "))
       end
-      named_scope :or, __or_fn
+      scope :or, __or_fn
     end
   end
 end
