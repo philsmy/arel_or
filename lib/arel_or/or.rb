@@ -9,16 +9,14 @@ module Or
         # for some reason, flatten is actually executing the scope
         scopes = scopes[0] if scopes.size == 1
         scopes.each do |s|
-          s = s.proxy_options
-          begin
-            where << merge_conditions(s[:conditions])
-          rescue NoMethodError
-            # I am ActiveRecord::Base. Only my subclasses define merge_conditions:
-            where << subclasses.first.merge_conditions(s[:conditions])
+          w = []
+          s.where_clauses.each do |where_clause|
+            w << where_clause
           end
-          #where << merge_conditions(s[:conditions])
-          joins << s[:joins] unless s[:joins].nil?
-          includes << s[:include] unless s[:include].nil?
+          where << w.join(" AND ")
+          
+          joins << s.joins_values if s.joins_values.any?
+          includes << s.includes_values if s.includes_values.any?
         end
         scoped = self
         scoped = scoped.includes(includes.uniq.flatten) unless includes.blank?
